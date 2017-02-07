@@ -46,6 +46,7 @@
 #include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/PlaceLocation.h>
+#include <moveit_msgs/AllowedCollisionMatrix.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
@@ -871,6 +872,8 @@ public:
   /** \brief Specify that no path constraints are to be used.
       This removes any path constraints set in previous calls to setPathConstraints(). */
   void clearPathConstraints();
+
+  void setAllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& allowed_collision_matrix);
 
   /**@}*/
 

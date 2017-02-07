@@ -91,8 +91,8 @@ class MoveGroup::MoveGroupImpl
 {
 public:
   MoveGroupImpl(const Options& opt, const boost::shared_ptr<tf::Transformer>& tf,
-                const ros::WallDuration& wait_for_servers)
-    : opt_(opt), node_handle_(opt.node_handle_), tf_(tf)
+    const ros::WallDuration& wait_for_servers)
+    : opt_(opt), node_handle_(opt.node_handle_), tf_(tf), is_set_allowed_collision_matrix_(false)
   {
     robot_model_ = opt.robot_model_ ? opt.robot_model_ : getSharedRobotModel(opt.robot_description_);
     if (!getRobotModel())
@@ -1039,6 +1039,12 @@ public:
     return replan_delay_;
   }
 
+  void setAllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& allowed_collision_matrix)
+  {
+    is_set_allowed_collision_matrix_ = true;
+    allowed_collision_matrix_ = allowed_collision_matrix;
+  }
+
   void constructGoal(moveit_msgs::MoveGroupGoal& goal_out)
   {
     moveit_msgs::MoveGroupGoal goal;
@@ -1049,6 +1055,9 @@ public:
     goal.request.allowed_planning_time = planning_time_;
     goal.request.planner_id = planner_id_;
     goal.request.workspace_parameters = workspace_parameters_;
+
+    if (is_set_allowed_collision_matrix_)
+      goal.planning_options.planning_scene_diff.allowed_collision_matrix = allowed_collision_matrix_;
 
     if (considered_start_state_)
       robot_state::robotStateToRobotStateMsg(*considered_start_state_, goal.request.start_state);
@@ -1270,6 +1279,9 @@ private:
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
+
+  bool is_set_allowed_collision_matrix_;
+  moveit_msgs::AllowedCollisionMatrix allowed_collision_matrix_;
 };
 }
 }
@@ -2073,6 +2085,11 @@ void moveit::planning_interface::MoveGroup::setPathConstraints(const moveit_msgs
 void moveit::planning_interface::MoveGroup::clearPathConstraints()
 {
   impl_->clearPathConstraints();
+}
+
+void moveit::planning_interface::MoveGroup::setAllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& allowed_collision_matrix)
+{
+  impl_->setAllowedCollisionMatrix(allowed_collision_matrix);
 }
 
 void moveit::planning_interface::MoveGroup::setConstraintsDatabase(const std::string& host, unsigned int port)
